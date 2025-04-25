@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Perbandingan Algoritma Sorting</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --background-color: #1a1a2e;
+            --card-bg: #16213e;
+            --text-color: #ffffff;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            padding: 2rem 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            margin-bottom: 2rem;
+            border-radius: 0 0 2rem 2rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            justify-content: center;
+        }
+
+        .tab {
+            padding: 1rem 2rem;
+            cursor: pointer;
+            border-radius: 0.5rem;
+            background: var(--card-bg);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .tab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        .tab.active {
+            background: var(--primary-color);
+            border-color: var(--secondary-color);
+        }
+
+        .chart-container {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+            min-height: 500px;
+        }
+
+        .chart-selector {
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        select {
+            background: var(--card-bg);
+            color: var(--text-color);
+            border: 2px solid var(--primary-color);
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        select:hover {
+            border-color: var(--secondary-color);
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            justify-content: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .tab {
+                padding: 0.8rem 1.2rem;
+                font-size: 0.9rem;
+            }
+            
+            .chart-container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Perbandingan Algoritma Sorting</h1>
+        <p>Visualisasi Waktu dan Memori untuk Berbagai Algoritma</p>
+    </div>
+
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('integer')">🧮 Integer</div>
+            <div class="tab" onclick="showTab('string')">🔤 String</div>
+        </div>
+
+        <!-- Integer Tab Content -->
+        <div id="integer-tab" class="tab-content active">
+            <div class="chart-selector">
+                <select id="integer-chart-type" onchange="updateIntegerChart()">
+                    <option value="execution-time">⏱️ Waktu Eksekusi</option>
+                    <option value="memory-usage">💾 Penggunaan Memori</option>
+                </select>
+            </div>
+            <div class="chart-container">
+                <canvas id="integer-chart"></canvas>
+            </div>
+        </div>
+
+        <!-- String Tab Content -->
+        <div id="string-tab" class="tab-content">
+            <div class="chart-selector">
+                <select id="string-chart-type" onchange="updateStringChart()">
+                    <option value="execution-time">⏱️ Waktu Eksekusi</option>
+                    <option value="memory-usage">💾 Penggunaan Memori</option>
+                </select>
+            </div>
+            <div class="chart-container">
+                <canvas id="string-chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data aktual dari tabel pengujian
+        const integerData = {
+            sizes: [10000, 50000, 100000, 250000, 500000, 1000000, 1500000, 2000000],
+            algorithms: [
+                {
+                    name: 'Bubble Sort',
+                    time: [0.083, 2.054, 10.027, 91.518, 550.835, 1992.639, 3894.664, 8312.124], // detik
+                    memory: [0.95, 4.75, 9.50, 23.75, 47.50, 95.00, 142.50, 190.00] // MB
+                },
+                {
+                    name: 'Selection Sort',
+                    time: [0.045, 1.090, 4.281, 27.121, 133.6954, 715.618, 963.939, 1532.145],
+                    memory: [0.95, 4.75, 9.50, 23.75, 47.50, 95.00, 142.50, 190.00]
+                },
+                {
+                    name: 'Insertion Sort',
+                    time: [0.035, 0.877, 3.423, 23.828, 106.606, 443.787, 861.707, 835.035],
+                    memory: [0.95, 4.75, 9.50, 23.75, 47.50, 95.00, 142.50, 190.00]
+                },
+                {
+                    name: 'Shell Sort',
+                    time: [0.001, 0.06, 0.012, 0.45, 0.097, 0.211, 0.352, 0.412],
+                    memory: [0.95, 4.75, 9.50, 23.75, 47.50, 95.00, 142.50, 190.00]
+                },
+                {
+                    name: 'Merge Sort',
+                    time: [0.002, 0.010, 0.017, 0.609, 0.131, 0.344, 0.410, 0.522],
+                    memory: [0.95, 4.75, 9.50, 23.75, 47.50, 95.00, 142.50, 190.00]
+                },
+                {
+                    name: 'Quick Sort',
+                    time: [0.000, 0.003, 0.008, 0.025, 0.048, 0.228, 0.221, 0.217],
+                    memory: [0.95, 4.75, 9.50, 23.75, 47.50, 95.00, 142.50, 190.00]
+                }
+            ]
+        };
+
+        const stringData = {
+            sizes: [10000, 50000, 100000, 250000, 500000, 1000000, 1500000, 2000000],
+            algorithms: [
+                {
+                    name: 'Bubble Sort',
+                    time: [0.271, 8.418, 42.743, 273.331, 2085.531, 10947.531, 24320.325, 42011.117], // detik
+                    memory: [0.95, 4.75, 9.50, 23.75, 47.50, 95.00, 142.50, 190.00] // MB
+                },
+                {
+                    name: 'Selection Sort',
+                    time: [0.093, 2.792, 12.261, 98.426, 975.057, 12011.058, 18302.910, 24755.732],
+                    memory: [0.95, 4.75, 9.50, 23.75, 47.50, 95.00, 142.50, 190.00]
+                },
+                {
+                    name: 'Insertion Sort',
+                    time: [0.047, 1.424, 6.648, 48.605, 455.220, 4342.419, 6542.218, 8707.231],
+                    memory: [0.95, 4.75, 9.50, 23.75, 47.50, 95.00, 142.50, 190.00]
+                },
+                {
+                    name: 'Shell Sort',
+                    time: [0.003, 0.014, 0.039, 0.100, 0.183, 1.475, 2.216, 3.004],
+                    memory: [0.95, 4.75, 9.50, 23.75, 47.50, 95.00, 142.50, 190.00]
+                },
+                {
+                    name: 'Merge Sort',
+                    time: [0.002, 0.011, 0.029, 0.093, 0.317, 0.583, 0.902, 1.240],
+                    memory: [0.95, 4.75, 9.50, 23.75, 47.50, 95.00, 142.50, 190.00]
+                },
+                {
+                    name: 'Quick Sort',
+                    time: [0.001, 0.007, 0.014, 0.042, 0.183, 0.373, 0.522, 0.713],
+                    memory: [0.95, 4.75, 9.50, 23.75, 47.50, 95.00, 142.50, 190.00]
+                }
+            ]
+        };
+
+        let integerChart, stringChart;
+
+        // Warna untuk setiap algoritma
+        const colors = [
+            '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEEAD', '#D4A5A5'
+        ];
+
+        function showTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.tab[onclick="showTab('${tab}')"]`).classList.add('active');
+            document.getElementById(`${tab}-tab`).classList.add('active');
+            if (tab === 'integer') updateIntegerChart();
+            else updateStringChart();
+        }
+
+        function updateIntegerChart() {
+            const type = document.getElementById('integer-chart-type').value;
+            const ctx = document.getElementById('integer-chart').getContext('2d');
+
+            if (integerChart) integerChart.destroy();
+
+            const datasets = integerData.algorithms.map((algo, i) => ({
+                label: algo.name,
+                data: type.includes('time') ? algo.time : algo.memory,
+                borderColor: colors[i],
+                backgroundColor: colors[i] + '80',
+                fill: false,
+                tension: 0.1
+            }));
+
+            integerChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: integerData.sizes,
+                    datasets
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: type.includes('time') ? 'Waktu Eksekusi vs Ukuran Data (Integer)' : 'Penggunaan Memori vs Ukuran Data (Integer)',
+                            color: '#ffffff',
+                            font: { size: 18 }
+                        },
+                        legend: { labels: { color: '#ffffff' } }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Ukuran Data', color: '#ffffff' },
+                            ticks: { color: '#ffffff' },
+                            grid: { color: '#444' }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: type.includes('time') ? 'Waktu (detik)' : 'Memori (MB)',
+                                color: '#ffffff'
+                            },
+                            ticks: { color: '#ffffff' },
+                            grid: { color: '#444' },
+                            type: type.includes('time') ? 'logarithmic' : 'linear', // Skala logaritmik untuk waktu
+                            min: type.includes('time') ? 0.0001 : 0
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateStringChart() {
+            const type = document.getElementById('string-chart-type').value;
+            const ctx = document.getElementById('string-chart').getContext('2d');
+
+            if (stringChart) stringChart.destroy();
+
+            const datasets = stringData.algorithms.map((algo, i) => ({
+                label: algo.name,
+                data: type.includes('time') ? algo.time : algo.memory,
+                borderColor: colors[i],
+                backgroundColor: colors[i] + '80',
+                fill: false,
+                tension: 0.1
+            }));
+
+            stringChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: stringData.sizes,
+                    datasets
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: type.includes('time') ? 'Waktu Eksekusi vs Ukuran Data (String)' : 'Penggunaan Memori vs Ukuran Data (String)',
+                            color: '#ffffff',
+                            font: { size: 18 }
+                        },
+                        legend: { labels: { color: '#ffffff' } }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Ukuran Data', color: '#ffffff' },
+                            ticks: { color: '#ffffff' },
+                            grid: { color: '#444' }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: type.includes('time') ? 'Waktu (detik)' : 'Memori (MB)',
+                                color: '#ffffff'
+                            },
+                            ticks: { color: '#ffffff' },
+                            grid: { color: '#444' },
+                            type: type.includes('time') ? 'logarithmic' : 'linear', // Skala logaritmik untuk waktu
+                            min: type.includes('time') ? 0.0001 : 0
+                        }
+                    }
+                }
+            });
+        }
+
+        // Inisialisasi grafik pertama
+        updateIntegerChart();
+    </script>
+</body>
+</html>
